@@ -212,4 +212,8 @@ __marimo__/
 # aws/ rules moved to aws/.gitignore (local to that folder)
 # Keep resources ignored at repo root
 
+# Ignore Serverless build artifacts anywhere in the repo
+**/.serverless/
+**/.serverless/**
+
 # End of .gitignore
