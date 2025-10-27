@@ -1,0 +1,12 @@
+# Ignore everything in this folder
+*
+
+# But keep these subfolders and their contents
+!frontend/
+!frontend/**
+!range/
+!range/**
+!import/
+!import/**
+
+# Note: ensure root .gitignore does not ignore the `aws/` directory itself
