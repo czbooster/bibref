@@ -1,0 +1,217 @@
+{
+  "H:\\VSCode_projects\\bibref\\aws\\import\\serverless.yml": {
+    "versionFramework": "4.22.0",
+    "servicePath": "H:\\VSCode_projects\\bibref\\aws\\import\\serverless.yml",
+    "serviceConfigFileName": "serverless.yml",
+    "service": {
+      "service": "bibref-app",
+      "provider": {
+        "name": "aws",
+        "runtime": "python3.11",
+        "region": "eu-central-1",
+        "deploymentBucket": "vojtech-serverless-deploy",
+        "environment": {
+          "S3_BUCKET": "bibref",
+          "S3_KEY": "emails_export (2).json"
+        },
+        "iam": {
+          "role": {
+            "statements": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "dynamodb:PutItem",
+                  "dynamodb:GetItem",
+                  "s3:GetObject",
+                  "s3:ListBucket",
+                  "dynamodb:Query"
+                ],
+                "Resource": [
+                  "arn:aws:dynamodb:eu-central-1:*:table/BibleCommentsV2",
+                  "arn:aws:s3:::bibref/*",
+                  "arn:aws:s3:::bibref",
+                  "arn:aws:dynamodb:eu-central-1:*:table/BibleCommentsV2/index/HashIndex"
+                ]
+              }
+            ]
+          }
+        },
+        "stage": "dev",
+        "versionFunctions": true,
+        "deploymentBucketObject": {
+          "name": "vojtech-serverless-deploy"
+        }
+      },
+      "resources": {
+        "Resources": {
+          "BibleCommentsTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "TableName": "BibleCommentsV2",
+              "BillingMode": "PAY_PER_REQUEST",
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "Book",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "CreatedAt",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "Chapter",
+                  "AttributeType": "N"
+                },
+                {
+                  "AttributeName": "VerseFrom",
+                  "AttributeType": "N"
+                },
+                {
+                  "AttributeName": "hash",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "Book",
+                  "KeyType": "HASH"
+                },
+                {
+                  "AttributeName": "CreatedAt",
+                  "KeyType": "RANGE"
+                }
+              ],
+              "GlobalSecondaryIndexes": [
+                {
+                  "IndexName": "ChapterRangeIndex",
+                  "KeySchema": [
+                    {
+                      "AttributeName": "Chapter",
+                      "KeyType": "HASH"
+                    },
+                    {
+                      "AttributeName": "VerseFrom",
+                      "KeyType": "RANGE"
+                    }
+                  ],
+                  "Projection": {
+                    "ProjectionType": "ALL"
+                  }
+                },
+                {
+                  "IndexName": "HashIndex",
+                  "KeySchema": [
+                    {
+                      "AttributeName": "hash",
+                      "KeyType": "HASH"
+                    }
+                  ],
+                  "Projection": {
+                    "ProjectionType": "ALL"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "functions": {
+        "loader": {
+          "handler": "lambda_loader.lambda_handler",
+          "timeout": 90,
+          "events": [
+            {
+              "http": {
+                "path": "load",
+                "method": "get"
+              }
+            }
+          ],
+          "name": "bibref-app-dev-loader"
+        }
+      }
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "python3.11",
+      "region": "eu-central-1",
+      "deploymentBucket": "vojtech-serverless-deploy",
+      "environment": {
+        "S3_BUCKET": "bibref",
+        "S3_KEY": "emails_export (2).json"
+      },
+      "iam": {
+        "role": {
+          "statements": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:PutItem",
+                "dynamodb:GetItem",
+                "s3:GetObject",
+                "s3:ListBucket",
+                "dynamodb:Query"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:eu-central-1:*:table/BibleCommentsV2",
+                "arn:aws:s3:::bibref/*",
+                "arn:aws:s3:::bibref",
+                "arn:aws:dynamodb:eu-central-1:*:table/BibleCommentsV2/index/HashIndex"
+              ]
+            }
+          ]
+        }
+      },
+      "stage": "dev",
+      "versionFunctions": true,
+      "deploymentBucketObject": {
+        "name": "vojtech-serverless-deploy"
+      }
+    },
+    "dashboard": {
+      "isEnabledForService": false,
+      "requiredAuthentication": false,
+      "orgFeaturesInUse": null,
+      "orgObservabilityIntegrations": null,
+      "serviceAppId": null,
+      "serviceProvider": null,
+      "instanceParameters": null
+    },
+    "serviceRawFile": "service: bibref-app\r\n\r\nprovider:\r\n  name: aws\r\n  runtime: python3.11\r\n  region: eu-central-1\r\n  deploymentBucket:\r\n    name: vojtech-serverless-deploy  \r\n  environment:\r\n    S3_BUCKET: \"bibref\"\r\n    S3_KEY: \"emails_export (2).json\"\r\n  iam:\r\n    role:\r\n      statements:\r\n        - Effect: Allow\r\n          Action:\r\n            - dynamodb:PutItem\r\n            - dynamodb:GetItem\r\n            - s3:GetObject\r\n            - s3:ListBucket\r\n            - dynamodb:Query         # 👈 přidáno            \r\n          Resource:\r\n            - arn:aws:dynamodb:eu-central-1:*:table/BibleCommentsV2\r\n            - arn:aws:s3:::bibref/*\r\n            - arn:aws:s3:::bibref\r\n            - arn:aws:dynamodb:eu-central-1:*:table/BibleCommentsV2/index/HashIndex  # 👈 přidáno\r\nresources:\r\n  Resources:\r\n    BibleCommentsTable:\r\n      Type: AWS::DynamoDB::Table\r\n      Properties:\r\n        TableName: BibleCommentsV2\r\n        BillingMode: PAY_PER_REQUEST\r\n        AttributeDefinitions:\r\n          - AttributeName: Book\r\n            AttributeType: S\r\n          - AttributeName: CreatedAt\r\n            AttributeType: S\r\n          - AttributeName: Chapter\r\n            AttributeType: N\r\n          - AttributeName: VerseFrom\r\n            AttributeType: N\r\n          - AttributeName: hash\r\n            AttributeType: S   # 👈 přidáno kvůli GSI HashIndex\r\n        KeySchema:\r\n          - AttributeName: Book\r\n            KeyType: HASH\r\n          - AttributeName: CreatedAt\r\n            KeyType: RANGE\r\n        GlobalSecondaryIndexes:\r\n          - IndexName: ChapterRangeIndex\r\n            KeySchema:\r\n              - AttributeName: Chapter\r\n                KeyType: HASH\r\n              - AttributeName: VerseFrom\r\n                KeyType: RANGE\r\n            Projection:\r\n              ProjectionType: ALL\r\n          - IndexName: HashIndex         # 👈 nový GSI\r\n            KeySchema:\r\n              - AttributeName: hash\r\n                KeyType: HASH\r\n            Projection:\r\n              ProjectionType: ALL              \r\nfunctions:\r\n  loader:\r\n    handler: lambda_loader.lambda_handler\r\n    timeout: 90  # ⏱️ zvýšeno na 30 sekund\r\n    events:\r\n      - http:\r\n          path: load\r\n          method: get\r\n",
+    "command": [
+      "invoke"
+    ],
+    "options": {
+      "function": "loader"
+    },
+    "orgId": "824727ac-3a11-471b-a782-1ef9f4ddf358",
+    "orgName": "dvojta",
+    "userId": "lgnZVGMRcn9qkWWw26",
+    "userName": "dvojta",
+    "serviceProviderAwsAccountId": "260062127709",
+    "serviceProviderAwsCfStackName": "bibref-app-dev",
+    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:eu-central-1:260062127709:stack/bibref-app-dev/17fe6240-b068-11f0-ba96-06ed09b7bfa9",
+    "serviceProviderAwsCfStackCreated": "2025-10-23T23:29:17.774Z",
+    "serviceProviderAwsCfStackUpdated": "2025-10-24T20:43:24.496Z",
+    "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
+    "serviceProviderAwsCfStackOutputs": [
+      {
+        "OutputKey": "ServiceEndpoint",
+        "OutputValue": "https://pc9nwx2b0f.execute-api.eu-central-1.amazonaws.com/dev",
+        "Description": "URL of the service endpoint",
+        "ExportName": "sls-bibref-app-dev-ServiceEndpoint"
+      },
+      {
+        "OutputKey": "ServerlessDeploymentBucketName",
+        "OutputValue": "vojtech-serverless-deploy",
+        "ExportName": "sls-bibref-app-dev-ServerlessDeploymentBucketName"
+      },
+      {
+        "OutputKey": "LoaderLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:eu-central-1:260062127709:function:bibref-app-dev-loader:9",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-bibref-app-dev-LoaderLambdaFunctionQualifiedArn"
+      }
+    ]
+  }
+}

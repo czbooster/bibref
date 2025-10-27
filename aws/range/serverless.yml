@@ -1,0 +1,29 @@
+service: bibref-range
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: eu-central-1
+  environment:
+    DYNAMODB_TABLE: BibleComments
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+          Resource: 
+            - arn:aws:dynamodb:eu-central-1:*:table/BibleCommentsV2
+            - arn:aws:dynamodb:eu-central-1:*:table/BibleCommentsV2/index/*
+
+
+
+functions:
+  range:
+    handler: range_handler.lambda_handler
+    timeout: 10
+    events:
+      - http:
+          path: range
+          method: get
+          cors: true

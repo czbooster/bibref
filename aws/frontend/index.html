@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hledání podle rozsahu veršů</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
+    input, button { padding: 0.5rem; margin: 0.5rem 0; width: 100%; }
+    .comment { border: 1px solid #ccc; padding: 1rem; margin: 1rem 0; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>🔍 Hledání komentářů podle rozsahu</h1>
+  <input id="book" placeholder="Kniha (např. Genesis)" />
+  <input id="chapter" type="number" placeholder="Kapitola (např. 1)" />
+  <input id="from" type="number" placeholder="Verš od (např. 1)" />
+  <input id="to" type="number" placeholder="Verš do (např. 10)" />
+  <button onclick="search()">Hledat</button>
+
+  <div id="results"></div>
+
+<script>
+async function search() {
+  const book = document.getElementById("book").value;
+  const chapter = document.getElementById("chapter").value;
+  const from = document.getElementById("from").value;
+  const to = document.getElementById("to").value;
+
+  const url = `https://q7b985ge9c.execute-api.eu-central-1.amazonaws.com/dev/range?book=${book}&chapter=${chapter}&from=${from}&to=${to}`;
+  const response = await fetch(url);
+  const raw = await response.json();
+
+  // ✅ Ověření typu
+  console.log("typeof raw.body:", typeof raw.body);
+  console.log("raw.body:", raw.body);
+
+  let data;
+  if (typeof raw.body === "string") {
+    try {
+      data = JSON.parse(raw.body); // pokud je to string, parsuj
+    } catch (e) {
+      console.error("❌ Chyba při JSON.parse:", e, raw.body);
+      document.getElementById("results").innerHTML = "<p>Chyba při načítání dat.</p>";
+      return;
+    }
+  } else {
+    data = raw; // pokud už je to pole, použij rovnou
+  }
+
+  const container = document.getElementById("results");
+  container.innerHTML = "";
+
+  if (!Array.isArray(data) || data.length === 0) {
+    container.innerHTML = "<p>Žádné komentáře nenalezeny.</p>";
+    return;
+  }
+
+  data.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "comment";
+
+    div.innerHTML = `
+      <h4>${item.Book} ${item.Chapter}:${item.VerseFrom}-${item.VerseTo}</h4>
+      <p><strong>${item.CreatedAt}</strong> – ${item.Author}</p>
+      <p><a href="${item.URL}" target="_blank">Otevřít v Bibli (obohu.cz)</a></p>
+      <p style="white-space: pre-wrap;">${item.Comment}</p>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+service: bibref-app
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: eu-central-1
+  deploymentBucket:
+    name: vojtech-serverless-deploy  
+  environment:
+    S3_BUCKET: "bibref"
+    S3_KEY: "emails_export (2).json"
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - s3:GetObject
+            - s3:ListBucket
+            - dynamodb:Query         # 👈 přidáno            
+          Resource:
+            - arn:aws:dynamodb:eu-central-1:*:table/BibleCommentsV2
+            - arn:aws:s3:::bibref/*
+            - arn:aws:s3:::bibref
+            - arn:aws:dynamodb:eu-central-1:*:table/BibleCommentsV2/index/HashIndex  # 👈 přidáno
+resources:
+  Resources:
+    BibleCommentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: BibleCommentsV2
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: Book
+            AttributeType: S
+          - AttributeName: CreatedAt
+            AttributeType: S
+          - AttributeName: Chapter
+            AttributeType: N
+          - AttributeName: VerseFrom
+            AttributeType: N
+          - AttributeName: hash
+            AttributeType: S   # 👈 přidáno kvůli GSI HashIndex
+        KeySchema:
+          - AttributeName: Book
+            KeyType: HASH
+          - AttributeName: CreatedAt
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: ChapterRangeIndex
+            KeySchema:
+              - AttributeName: Chapter
+                KeyType: HASH
+              - AttributeName: VerseFrom
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: HashIndex         # 👈 nový GSI
+            KeySchema:
+              - AttributeName: hash
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL              
+functions:
+  loader:
+    handler: lambda_loader.lambda_handler
+    timeout: 90  # ⏱️ zvýšeno na 30 sekund
+    events:
+      - http:
+          path: load
+          method: get
